@@ -1,0 +1,1152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="PoolPro">
+<meta name="theme-color" content="#0a1628">
+<title>PoolPro Manager</title>
+
+<!-- PWA Manifest inline via JS below -->
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=DM+Mono:wght@400;500&display=swap');
+
+  :root {
+    --water-deep: #0a1628;
+    --water-mid: #0d2137;
+    --water-surface: #0e3a5c;
+    --water-bright: #1a6ea8;
+    --cyan: #00d4ff;
+    --cyan-dim: rgba(0,212,255,0.12);
+    --cyan-glow: rgba(0,212,255,0.35);
+    --green: #00e5a0;
+    --green-dim: rgba(0,229,160,0.12);
+    --yellow: #ffd166;
+    --red: #ff6b6b;
+    --red-dim: rgba(255,107,107,0.12);
+    --text: #e8f4f8;
+    --text-dim: #7aa8c4;
+    --border: rgba(0,212,255,0.18);
+    --card: rgba(13,33,55,0.85);
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  html, body {
+    height: 100%;
+    overscroll-behavior: none;
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--water-deep);
+    color: var(--text);
+    min-height: 100vh;
+    min-height: -webkit-fill-available;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse at 20% 50%, rgba(0,212,255,0.05) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 20%, rgba(0,229,160,0.04) 0%, transparent 40%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ── LAYOUT ── */
+  .app {
+    position: relative;
+    z-index: 1;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 16px calc(80px + var(--safe-bottom));
+  }
+
+  /* ── HEADER ── */
+  header {
+    padding: calc(16px + var(--safe-top)) 0 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 28px;
+    position: sticky;
+    top: 0;
+    background: rgba(10,22,40,0.92);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    z-index: 50;
+    margin-left: -16px;
+    margin-right: -16px;
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .logo { display: flex; align-items: center; gap: 10px; }
+  .logo-icon {
+    width: 38px; height: 38px;
+    background: linear-gradient(135deg, var(--water-bright), var(--cyan));
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+  }
+  .logo h1 {
+    font-family: 'Bebas Neue', cursive;
+    font-size: 26px; letter-spacing: 2px;
+    color: var(--cyan); line-height: 1;
+  }
+  .logo span {
+    font-size: 10px; color: var(--text-dim);
+    letter-spacing: 2px; text-transform: uppercase;
+    display: block; font-family: 'DM Mono', monospace;
+  }
+
+  .header-right { display: flex; gap: 8px; align-items: center; }
+
+  .user-pill {
+    font-size: 11px; color: var(--text-dim);
+    font-family: 'DM Mono', monospace;
+    background: rgba(0,0,0,0.3);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 4px 10px;
+    max-width: 140px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* ── BUTTONS ── */
+  .btn {
+    padding: 9px 18px; border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--cyan-dim); color: var(--cyan);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px; font-weight: 600;
+    cursor: pointer; transition: all 0.2s;
+    letter-spacing: 0.3px;
+    -webkit-touch-callout: none;
+  }
+  .btn:hover, .btn:active { background: rgba(0,212,255,0.22); border-color: var(--cyan); }
+  .btn-green { background: var(--green-dim); color: var(--green); border-color: rgba(0,229,160,0.25); }
+  .btn-green:hover, .btn-green:active { background: rgba(0,229,160,0.22); border-color: var(--green); }
+  .btn-danger { background: var(--red-dim); color: var(--red); border-color: rgba(255,107,107,0.25); }
+  .btn-danger:hover, .btn-danger:active { background: rgba(255,107,107,0.22); border-color: var(--red); }
+  .btn-solid { background: var(--cyan); color: var(--water-deep); border-color: var(--cyan); font-weight: 700; }
+  .btn-solid:hover, .btn-solid:active { background: #33ddff; }
+  .btn-sm { padding: 6px 12px; font-size: 12px; }
+  .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+  /* ── AUTH SCREEN ── */
+  #authScreen {
+    display: flex; align-items: center; justify-content: center;
+    min-height: 100vh;
+    padding: 20px;
+  }
+
+  .auth-box {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 36px 28px;
+    width: 100%; max-width: 380px;
+    backdrop-filter: blur(10px);
+  }
+
+  .auth-logo {
+    text-align: center; margin-bottom: 28px;
+  }
+  .auth-logo .icon { font-size: 48px; margin-bottom: 8px; }
+  .auth-logo h2 {
+    font-family: 'Bebas Neue', cursive;
+    font-size: 32px; letter-spacing: 3px; color: var(--cyan);
+  }
+  .auth-logo p { font-size: 12px; color: var(--text-dim); letter-spacing: 1px; }
+
+  .auth-tabs { display: flex; border-bottom: 1px solid var(--border); margin-bottom: 24px; }
+  .auth-tab {
+    flex: 1; padding: 10px;
+    border: none; background: none;
+    color: var(--text-dim);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px; font-weight: 600;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px; transition: all 0.2s;
+  }
+  .auth-tab.active { color: var(--cyan); border-bottom-color: var(--cyan); }
+
+  .auth-error {
+    background: var(--red-dim); border: 1px solid rgba(255,107,107,0.3);
+    border-radius: 8px; padding: 10px 14px;
+    color: var(--red); font-size: 13px;
+    margin-bottom: 16px; display: none;
+  }
+
+  /* ── SECTION TITLES ── */
+  .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+  .section-title { font-family: 'Bebas Neue', cursive; font-size: 20px; letter-spacing: 2px; color: var(--text-dim); }
+
+  /* ── POOL GRID ── */
+  .pool-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 14px;
+    margin-bottom: 40px;
+  }
+
+  .pool-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 18px;
+    cursor: pointer;
+    transition: all 0.22s;
+    position: relative; overflow: hidden;
+    backdrop-filter: blur(10px);
+  }
+  .pool-card::before {
+    content: ''; position: absolute;
+    top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, var(--cyan), var(--green));
+    opacity: 0; transition: opacity 0.22s;
+  }
+  .pool-card:hover, .pool-card:active { border-color: var(--cyan); transform: translateY(-2px); box-shadow: 0 8px 28px rgba(0,212,255,0.1); }
+  .pool-card:hover::before, .pool-card:active::before { opacity: 1; }
+  .pool-card-name { font-size: 15px; font-weight: 600; margin-bottom: 3px; }
+  .pool-card-sub { font-size: 11px; color: var(--text-dim); margin-bottom: 12px; font-family: 'DM Mono', monospace; }
+  .pool-card-stats { display: flex; gap: 14px; }
+  .stat-mini { text-align: center; }
+  .stat-mini .val { font-family: 'DM Mono', monospace; font-size: 13px; font-weight: 500; color: var(--cyan); }
+  .stat-mini .lbl { font-size: 9px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; }
+  .flow-badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 3px 8px; border-radius: 20px;
+    font-size: 10px; font-weight: 600; margin-top: 10px;
+  }
+  .flow-good { background: var(--green-dim); color: var(--green); }
+  .flow-low { background: rgba(255,209,102,0.12); color: var(--yellow); }
+
+  .add-pool-card {
+    border: 2px dashed var(--border); border-radius: 14px;
+    padding: 18px; cursor: pointer;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    min-height: 130px; transition: all 0.22s; color: var(--text-dim);
+  }
+  .add-pool-card:hover, .add-pool-card:active { border-color: var(--cyan); color: var(--cyan); background: var(--cyan-dim); }
+  .add-pool-card .plus { font-size: 28px; margin-bottom: 6px; }
+  .add-pool-card span { font-size: 12px; font-weight: 600; letter-spacing: 1px; }
+
+  /* ── OVERLAY / MODAL ── */
+  .overlay {
+    position: fixed; inset: 0;
+    background: rgba(5,10,20,0.88);
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+    z-index: 200;
+    display: none; align-items: flex-end;
+    padding: 0;
+  }
+  .overlay.open { display: flex; }
+
+  .modal {
+    background: var(--water-mid);
+    border: 1px solid var(--border);
+    border-radius: 20px 20px 0 0;
+    width: 100%;
+    max-height: 92vh;
+    overflow-y: auto;
+    padding: 28px 20px calc(20px + var(--safe-bottom));
+    position: relative;
+    -webkit-overflow-scrolling: touch;
+  }
+  .modal::-webkit-scrollbar { width: 4px; }
+  .modal::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  .modal-handle {
+    width: 36px; height: 4px;
+    background: var(--border); border-radius: 2px;
+    margin: 0 auto 20px;
+  }
+
+  .modal-title {
+    font-family: 'Bebas Neue', cursive;
+    font-size: 24px; letter-spacing: 2px;
+    color: var(--cyan); margin-bottom: 20px;
+  }
+
+  .modal-close {
+    position: absolute; top: 18px; right: 16px;
+    background: none; border: 1px solid var(--border);
+    color: var(--text-dim); width: 30px; height: 30px;
+    border-radius: 7px; cursor: pointer; font-size: 15px;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s;
+  }
+  .modal-close:hover { border-color: var(--red); color: var(--red); }
+
+  /* ── FORMS ── */
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .form-full { grid-column: 1 / -1; }
+  .form-group { display: flex; flex-direction: column; gap: 5px; }
+  .form-group label { font-size: 10px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--text-dim); font-weight: 600; }
+  .form-group input, .form-group select, .form-group textarea {
+    background: rgba(0,0,0,0.35); border: 1px solid var(--border);
+    border-radius: 8px; padding: 11px 13px;
+    color: var(--text); font-family: 'DM Sans', sans-serif;
+    font-size: 15px; transition: border-color 0.2s;
+    -webkit-appearance: none; appearance: none;
+  }
+  .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+    outline: none; border-color: var(--cyan); box-shadow: 0 0 0 3px var(--cyan-dim);
+  }
+  .form-group select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%237aa8c4' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px; }
+  .form-group select option { background: #0d2137; }
+  .form-group textarea { resize: vertical; min-height: 72px; }
+
+  .form-section { margin: 20px 0 14px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+  .form-section-title { font-family: 'Bebas Neue', cursive; font-size: 15px; letter-spacing: 2px; color: var(--text-dim); }
+
+  /* ── DETAIL VIEW ── */
+  .detail-header {
+    display: flex; align-items: flex-start;
+    justify-content: space-between; margin-bottom: 22px;
+    flex-wrap: wrap; gap: 10px;
+  }
+  .detail-title { font-family: 'Bebas Neue', cursive; font-size: 30px; letter-spacing: 2px; color: var(--cyan); }
+  .detail-sub { font-size: 12px; color: var(--text-dim); font-family: 'DM Mono', monospace; margin-top: 2px; }
+  .detail-badges { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+  .badge { padding: 3px 9px; border-radius: 20px; font-size: 10px; font-weight: 600; border: 1px solid; }
+  .badge-blue { background: var(--cyan-dim); color: var(--cyan); border-color: rgba(0,212,255,0.25); }
+
+  /* ── PANELS ── */
+  .panel {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 14px; padding: 20px; margin-bottom: 18px;
+    backdrop-filter: blur(10px);
+  }
+  .panel-title {
+    font-family: 'Bebas Neue', cursive; font-size: 17px;
+    letter-spacing: 2px; color: var(--text-dim); margin-bottom: 16px;
+  }
+
+  /* ── READINGS ── */
+  .readings-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+  .reading-input-group { display: flex; flex-direction: column; gap: 5px; }
+  .reading-input-group label { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-dim); font-weight: 600; }
+  .reading-input-group input {
+    background: rgba(0,0,0,0.3); border: 1px solid var(--border);
+    border-radius: 8px; padding: 10px 11px;
+    color: var(--text); font-family: 'DM Mono', monospace;
+    font-size: 15px; width: 100%; transition: border-color 0.2s;
+    -webkit-appearance: none;
+  }
+  .reading-input-group input:focus { outline: none; border-color: var(--cyan); box-shadow: 0 0 0 3px var(--cyan-dim); }
+
+  /* ── RESULTS ── */
+  .results-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(175px, 1fr)); gap: 10px; }
+  .result-card { background: rgba(0,0,0,0.2); border-radius: 10px; padding: 13px; border: 1px solid transparent; }
+  .result-ok { border-color: rgba(0,229,160,0.3); background: rgba(0,229,160,0.04); }
+  .result-warn { border-color: rgba(255,209,102,0.3); background: rgba(255,209,102,0.04); }
+  .result-bad { border-color: rgba(255,107,107,0.3); background: rgba(255,107,107,0.04); }
+  .result-name { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-dim); font-weight: 600; margin-bottom: 5px; }
+  .result-reading { font-family: 'DM Mono', monospace; font-size: 18px; font-weight: 500; }
+  .result-ok .result-reading { color: var(--green); }
+  .result-warn .result-reading { color: var(--yellow); }
+  .result-bad .result-reading { color: var(--red); }
+  .result-status { font-size: 11px; margin-top: 3px; }
+  .result-ok .result-status { color: var(--green); }
+  .result-warn .result-status { color: var(--yellow); }
+  .result-bad .result-status { color: var(--red); }
+  .result-action { font-size: 11px; color: var(--text-dim); margin-top: 7px; padding-top: 7px; border-top: 1px solid var(--border); font-family: 'DM Mono', monospace; }
+  .result-action strong { color: var(--cyan); }
+
+  /* ── HISTORY ── */
+  .history-entry {
+    border: 1px solid var(--border); border-radius: 10px;
+    padding: 13px; margin-bottom: 8px;
+    background: rgba(0,0,0,0.2); transition: all 0.2s;
+  }
+  .history-date { font-size: 11px; color: var(--text-dim); font-family: 'DM Mono', monospace; margin-bottom: 7px; }
+  .history-pills { display: flex; flex-wrap: wrap; gap: 5px; }
+  .history-pill {
+    padding: 2px 7px; border-radius: 12px; font-size: 11px;
+    font-family: 'DM Mono', monospace;
+    background: var(--cyan-dim); color: var(--cyan); border: 1px solid rgba(0,212,255,0.25);
+  }
+
+  /* ── TARGETS ── */
+  .chem-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .chem-row { background: rgba(0,0,0,0.22); border: 1px solid var(--border); border-radius: 10px; padding: 13px; }
+  .chem-row label { font-size: 10px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--text-dim); font-weight: 600; margin-bottom: 7px; display: block; }
+  .chem-inputs { display: flex; gap: 6px; align-items: center; }
+  .chem-inputs input {
+    width: 100%; background: rgba(0,0,0,0.3);
+    border: 1px solid var(--border); border-radius: 6px;
+    padding: 7px 9px; color: var(--text);
+    font-family: 'DM Mono', monospace; font-size: 13px; transition: border-color 0.2s;
+    -webkit-appearance: none;
+  }
+  .chem-inputs input:focus { outline: none; border-color: var(--cyan); }
+  .chem-unit { font-size: 10px; color: var(--text-dim); white-space: nowrap; font-family: 'DM Mono', monospace; }
+
+  /* ── CUSTOM CHEMS ── */
+  .custom-chem-row { display: flex; gap: 8px; align-items: flex-end; margin-bottom: 10px; flex-wrap: wrap; }
+  .custom-chem-row .form-group { flex: 1; min-width: 80px; }
+
+  /* ── NAV ── */
+  .back-btn {
+    display: flex; align-items: center; gap: 7px;
+    background: none; border: none; color: var(--text-dim);
+    cursor: pointer; font-family: 'DM Sans', sans-serif;
+    font-size: 13px; font-weight: 600; padding: 0;
+    margin-bottom: 20px; transition: color 0.2s;
+  }
+  .back-btn:hover, .back-btn:active { color: var(--cyan); }
+
+  .tabs { display: flex; gap: 2px; border-bottom: 1px solid var(--border); margin-bottom: 20px; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .tab {
+    padding: 9px 15px; border: none; background: none;
+    color: var(--text-dim); font-family: 'DM Sans', sans-serif;
+    font-size: 13px; font-weight: 600; cursor: pointer;
+    border-bottom: 2px solid transparent; margin-bottom: -1px;
+    transition: all 0.2s; white-space: nowrap;
+  }
+  .tab.active { color: var(--cyan); border-bottom-color: var(--cyan); }
+
+  .action-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 18px; }
+
+  .empty-state { text-align: center; padding: 36px; color: var(--text-dim); }
+  .empty-state .icon { font-size: 36px; margin-bottom: 10px; opacity: 0.45; }
+  .empty-state p { font-size: 13px; }
+
+  /* ── TOAST ── */
+  #toast {
+    position: fixed; bottom: calc(24px + var(--safe-bottom)); left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--green); color: #0a1628;
+    font-weight: 700; font-size: 13px; padding: 10px 20px;
+    border-radius: 20px; z-index: 500;
+    opacity: 0; transition: all 0.3s; pointer-events: none;
+    white-space: nowrap;
+  }
+  #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  #toast.error { background: var(--red); color: #fff; }
+
+  /* ── LOADING ── */
+  #loadingScreen {
+    position: fixed; inset: 0; background: var(--water-deep);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 999; flex-direction: column; gap: 16px;
+  }
+  .spinner {
+    width: 40px; height: 40px;
+    border: 3px solid var(--border);
+    border-top-color: var(--cyan);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── SYNC INDICATOR ── */
+  .sync-dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--green); display: inline-block; margin-right: 4px;
+  }
+  .sync-dot.syncing { background: var(--yellow); animation: pulse 1s ease-in-out infinite; }
+  .sync-dot.error { background: var(--red); }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 540px) {
+    .form-grid { grid-template-columns: 1fr; }
+    .chem-grid { grid-template-columns: 1fr; }
+    .results-grid { grid-template-columns: 1fr 1fr; }
+  }
+
+  /* ── FEATURE BUTTONS ── */
+  .feature-wrap { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 14px; }
+</style>
+</head>
+<body>
+
+<!-- LOADING -->
+<div id="loadingScreen">
+  <div class="spinner"></div>
+  <div style="font-family:'DM Mono',monospace;font-size:12px;color:var(--text-dim)">Loading PoolPro…</div>
+</div>
+
+<!-- AUTH SCREEN -->
+<div id="authScreen" style="display:none;">
+  <div class="auth-box">
+    <div class="auth-logo">
+      <div class="icon">🌊</div>
+      <h2>PoolPro</h2>
+      <p>Chemical Management System</p>
+    </div>
+    <div class="auth-tabs">
+      <button class="auth-tab active" onclick="switchAuthTab('login')">Sign In</button>
+      <button class="auth-tab" onclick="switchAuthTab('register')">Create Account</button>
+    </div>
+    <div class="auth-error" id="authError"></div>
+    <div class="form-group" style="margin-bottom:12px;">
+      <label>Email</label>
+      <input type="email" id="authEmail" placeholder="you@example.com" autocomplete="email">
+    </div>
+    <div class="form-group" style="margin-bottom:20px;">
+      <label>Password</label>
+      <input type="password" id="authPassword" placeholder="••••••••" autocomplete="current-password">
+    </div>
+    <button class="btn btn-solid" style="width:100%;justify-content:center;" id="authBtn" onclick="doAuth()">Sign In</button>
+    <div id="forgotWrap" style="text-align:center;margin-top:14px;">
+      <button onclick="doForgotPassword()" style="background:none;border:none;color:var(--text-dim);font-size:12px;cursor:pointer;text-decoration:underline;">Forgot password?</button>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="appScreen" style="display:none;">
+  <header>
+    <div class="logo">
+      <div class="logo-icon">🌊</div>
+      <div>
+        <h1>PoolPro</h1>
+        <span>Chemical Management</span>
+      </div>
+    </div>
+    <div class="header-right">
+      <span class="sync-dot" id="syncDot"></span>
+      <div class="user-pill" id="userEmail"></div>
+      <button class="btn btn-sm" onclick="doSignOut()">Out</button>
+    </div>
+  </header>
+
+  <div class="app">
+    <!-- POOL LIST -->
+    <div id="mainView">
+      <div class="section-header">
+        <div class="section-title">Your Pools</div>
+        <button class="btn btn-solid btn-sm" onclick="openAddPool()">+ New Pool</button>
+      </div>
+      <div class="pool-grid" id="poolGrid"></div>
+    </div>
+
+    <!-- POOL DETAIL -->
+    <div id="detailView" style="display:none;">
+      <button class="back-btn" onclick="showMain()">← All Pools</button>
+      <div class="detail-header">
+        <div>
+          <div class="detail-title" id="detailName"></div>
+          <div class="detail-sub" id="detailSub"></div>
+          <div class="detail-badges" id="detailBadges"></div>
+        </div>
+        <div style="display:flex;gap:7px;flex-wrap:wrap;">
+          <button class="btn btn-sm" onclick="editCurrentPool()">Edit</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteCurrentPool()">Delete</button>
+        </div>
+      </div>
+      <div class="tabs">
+        <button class="tab active" onclick="switchTab('readings')">Log Reading</button>
+        <button class="tab" onclick="switchTab('history')">History</button>
+        <button class="tab" onclick="switchTab('settings')">Targets</button>
+      </div>
+      <div id="tab-readings">
+        <div class="panel">
+          <div class="panel-title">Enter Today's Readings</div>
+          <div class="readings-grid" id="readingsGrid"></div>
+          <div class="action-row">
+            <button class="btn btn-solid" onclick="analyzeReadings()">Analyze & Recommend</button>
+            <button class="btn" onclick="clearReadings()">Clear</button>
+          </div>
+        </div>
+        <div class="panel" id="resultsPanel" style="display:none;">
+          <div class="panel-title">📊 Analysis & Recommendations</div>
+          <div id="lowFlowWarning" style="display:none;background:rgba(255,209,102,0.1);border:1px solid rgba(255,209,102,0.3);border-radius:8px;padding:10px 13px;margin-bottom:14px;font-size:12px;color:var(--yellow);">
+            ⚠ Low Flow pool — dosing adjusted +15% to compensate for chemical swings.
+          </div>
+          <div class="results-grid" id="resultsGrid"></div>
+          <div class="action-row">
+            <button class="btn btn-green" onclick="saveReading()">💾 Save Reading</button>
+          </div>
+        </div>
+      </div>
+      <div id="tab-history" style="display:none;">
+        <div class="panel">
+          <div class="panel-title">Reading History</div>
+          <div id="historyList"></div>
+        </div>
+      </div>
+      <div id="tab-settings" style="display:none;">
+        <div class="panel">
+          <div class="panel-title">Custom Target Ranges</div>
+          <p style="font-size:12px;color:var(--text-dim);margin-bottom:16px;">Override industry standards for this pool. These are saved per-pool.</p>
+          <div id="targetsGrid"></div>
+          <hr style="border:none;border-top:1px solid var(--border);margin:20px 0;">
+          <div class="panel-title" style="margin-bottom:10px;">Custom Chemicals</div>
+          <p style="font-size:12px;color:var(--text-dim);margin-bottom:14px;">Track additional chemicals specific to this pool.</p>
+          <div id="customChemList"></div>
+          <div class="custom-chem-row">
+            <div class="form-group"><label>Name</label><input type="text" id="newChemName" placeholder="e.g. Enzyme"></div>
+            <div class="form-group"><label>Unit</label><input type="text" id="newChemUnit" placeholder="ppm"></div>
+            <div class="form-group"><label>Min</label><input type="number" id="newChemMin" placeholder="0"></div>
+            <div class="form-group"><label>Max</label><input type="number" id="newChemMax" placeholder="100"></div>
+            <button class="btn btn-green btn-sm" onclick="addCustomChem()" style="margin-top:18px;">Add</button>
+          </div>
+          <div class="action-row">
+            <button class="btn btn-solid" onclick="saveTargets()">Save Targets</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ADD/EDIT POOL MODAL -->
+<div class="overlay" id="poolModal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="modalTitle">New Pool Profile</div>
+    <button class="modal-close" onclick="closeModal('poolModal')">✕</button>
+    <div class="form-grid">
+      <div class="form-group form-full">
+        <label>Pool Name / Address</label>
+        <input type="text" id="poolName" placeholder="e.g., Johnson Residence">
+      </div>
+      <div class="form-group">
+        <label>Pool Size (Gallons)</label>
+        <input type="number" id="poolGallons" placeholder="15000">
+      </div>
+      <div class="form-group">
+        <label>Pool Type</label>
+        <select id="poolType">
+          <option value="residential">Residential</option>
+          <option value="commercial">Commercial</option>
+          <option value="spa">Spa / Hot Tub</option>
+          <option value="lap">Lap Pool</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Flow Quality</label>
+        <select id="poolFlow">
+          <option value="good">Good Flow</option>
+          <option value="low">Low Flow</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Surface Type</label>
+        <select id="poolSurface">
+          <option value="plaster">Plaster</option>
+          <option value="pebble">Pebble Tec</option>
+          <option value="fiberglass">Fiberglass</option>
+          <option value="vinyl">Vinyl</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-section"><div class="form-section-title">Features & Equipment</div></div>
+    <div class="feature-wrap" id="featureButtons"></div>
+    <div class="form-group">
+      <label>Notes</label>
+      <textarea id="poolNotes" placeholder="Special notes about this pool…"></textarea>
+    </div>
+    <div class="action-row">
+      <button class="btn btn-solid" onclick="savePool()">Save Pool</button>
+      <button class="btn" onclick="closeModal('poolModal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<!-- Firebase SDK -->
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, sendPasswordResetEmail } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+import { getFirestore, collection, doc, setDoc, getDoc, onSnapshot, deleteDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+
+// ═══════════════════════════════════════════════
+//  🔧 PASTE YOUR FIREBASE CONFIG BELOW
+//  Replace every value with your own project values
+// ═══════════════════════════════════════════════
+const firebaseConfig = {
+  apiKey:            "AIzaSyD0jF2gAVbzM_AMDG17f8i7a0sbWzATm_A",
+  authDomain:        "poolpro-57bdd.firebaseapp.com",
+  projectId:         "poolpro-57bdd",
+  storageBucket:     "poolpro-57bdd.firebasestorage.app",
+  messagingSenderId: "324466477004",
+  appId:             "1:324466477004:web:66e8ef3de993194b2ebf69",
+  measurementId:     "G-NM981GGW5J"
+};
+// ═══════════════════════════════════════════════
+
+const firebaseApp = initializeApp(firebaseConfig);
+const auth = getAuth(firebaseApp);
+const db = getFirestore(firebaseApp);
+
+// ── GLOBALS ──
+const FEATURE_OPTIONS = ['Heater','Salt System','UV System','Ozone System','Waterfall','Spa','Slide','Diving Board','Solar Cover','Auto Cleaner','Skimmer','Main Drain','LED Lights'];
+const DEFAULT_CHEMICALS = [
+  { key:'freeChlorine',  name:'Free Chlorine',    unit:'ppm',  min:1,   max:3   },
+  { key:'totalChlorine', name:'Total Chlorine',   unit:'ppm',  min:1,   max:5   },
+  { key:'ph',            name:'pH',               unit:'',     min:7.2, max:7.8 },
+  { key:'alkalinity',    name:'Total Alkalinity', unit:'ppm',  min:80,  max:120 },
+  { key:'calcium',       name:'Calcium Hardness', unit:'ppm',  min:200, max:400 },
+  { key:'cyanuric',      name:'Cyanuric Acid',    unit:'ppm',  min:30,  max:80  },
+  { key:'salt',          name:'Salt',             unit:'ppm',  min:2700,max:3400},
+  { key:'phosphates',    name:'Phosphates',       unit:'ppb',  min:0,   max:200 },
+];
+
+const TREATMENT = {
+  freeChlorine: (diff, gal) => { const g = ((diff * gal / 10000) * 13) / 128; return `Add ~${g.toFixed(2)} gal liquid chlorine (10%)`; },
+  ph: (diff, gal) => {
+    if (diff > 0) { const g = ((diff/0.1)*1.5*(gal/10000))/128; return `Add ~${g.toFixed(2)} gal muriatic acid`; }
+    const oz = (Math.abs(diff)/0.1)*1.5*(gal/10000); return `Add ~${oz.toFixed(1)} oz soda ash`;
+  },
+  alkalinity: (diff, gal) => { const lbs = (diff/10)*1.5*(gal/10000); return `Add ~${lbs.toFixed(1)} lbs sodium bicarbonate`; },
+  calcium: (diff, gal) => { const lbs = (diff/10)*1.25*(gal/10000); return `Add ~${lbs.toFixed(1)} lbs calcium chloride`; },
+  cyanuric: (diff, gal) => { const lbs = (diff/10)*(gal/10000); return `Add ~${lbs.toFixed(1)} lbs cyanuric acid`; },
+  salt: (diff, gal) => { const lbs = (diff/10)*(gal/10000); return `Add ~${lbs.toFixed(1)} lbs pool salt`; },
+  phosphates: (diff, gal) => `Use phosphate remover per label for ${gal.toLocaleString()} gal`,
+  totalChlorine: () => null,
+};
+
+let pools = {};
+let currentPoolId = null;
+let editingPoolId = null;
+let selectedFeatures = new Set();
+let pendingReadings = {};
+let pendingAnalysis = null;
+let currentUser = null;
+let unsubPools = null;
+let authMode = 'login';
+
+// ── AUTH MODE ──
+window.switchAuthTab = (mode) => {
+  authMode = mode;
+  document.querySelectorAll('.auth-tab').forEach((t,i) => t.classList.toggle('active', (i===0&&mode==='login')||(i===1&&mode==='register')));
+  document.getElementById('authBtn').textContent = mode === 'login' ? 'Sign In' : 'Create Account';
+  document.getElementById('forgotWrap').style.display = mode === 'login' ? '' : 'none';
+  document.getElementById('authError').style.display = 'none';
+};
+
+window.doAuth = async () => {
+  const email = document.getElementById('authEmail').value.trim();
+  const pw = document.getElementById('authPassword').value;
+  const errEl = document.getElementById('authError');
+  errEl.style.display = 'none';
+  const btn = document.getElementById('authBtn');
+  btn.disabled = true; btn.textContent = '…';
+  try {
+    if (authMode === 'login') await signInWithEmailAndPassword(auth, email, pw);
+    else await createUserWithEmailAndPassword(auth, email, pw);
+  } catch(e) {
+    errEl.textContent = friendlyAuthError(e.code);
+    errEl.style.display = '';
+    btn.disabled = false;
+    btn.textContent = authMode === 'login' ? 'Sign In' : 'Create Account';
+  }
+};
+
+window.doForgotPassword = async () => {
+  const email = document.getElementById('authEmail').value.trim();
+  if (!email) { showToast('Enter your email first', true); return; }
+  try { await sendPasswordResetEmail(auth, email); showToast('Reset email sent!'); }
+  catch(e) { showToast('Could not send reset email', true); }
+};
+
+window.doSignOut = async () => {
+  if (unsubPools) unsubPools();
+  await signOut(auth);
+};
+
+function friendlyAuthError(code) {
+  const map = {
+    'auth/invalid-email': 'Invalid email address.',
+    'auth/user-not-found': 'No account found with that email.',
+    'auth/wrong-password': 'Incorrect password.',
+    'auth/email-already-in-use': 'An account with this email already exists.',
+    'auth/weak-password': 'Password should be at least 6 characters.',
+    'auth/too-many-requests': 'Too many attempts. Please wait and try again.',
+    'auth/invalid-credential': 'Email or password is incorrect.',
+  };
+  return map[code] || 'Authentication error. Please try again.';
+}
+
+// ── AUTH STATE ──
+onAuthStateChanged(auth, async (user) => {
+  document.getElementById('loadingScreen').style.display = 'none';
+  if (user) {
+    currentUser = user;
+    document.getElementById('authScreen').style.display = 'none';
+    document.getElementById('appScreen').style.display = '';
+    document.getElementById('userEmail').textContent = user.email;
+    startPoolSync();
+  } else {
+    currentUser = null;
+    if (unsubPools) { unsubPools(); unsubPools = null; }
+    pools = {};
+    document.getElementById('appScreen').style.display = 'none';
+    document.getElementById('authScreen').style.display = 'flex';
+    showMain();
+  }
+});
+
+// ── FIRESTORE SYNC ──
+function poolsCol() {
+  return collection(db, 'users', currentUser.uid, 'pools');
+}
+
+function startPoolSync() {
+  setSyncState('syncing');
+  unsubPools = onSnapshot(poolsCol(), (snap) => {
+    pools = {};
+    snap.forEach(d => { pools[d.id] = { id: d.id, ...d.data() }; });
+    setSyncState('ok');
+    if (currentPoolId) {
+      if (pools[currentPoolId]) renderDetailView(currentPoolId);
+      else showMain();
+    } else {
+      renderPoolGrid();
+    }
+  }, () => setSyncState('error'));
+}
+
+async function persistPool(pool) {
+  setSyncState('syncing');
+  try {
+    const { id, ...data } = pool;
+    await setDoc(doc(poolsCol(), id), { ...data, updatedAt: serverTimestamp() });
+    setSyncState('ok');
+  } catch(e) { setSyncState('error'); showToast('Sync error — check connection', true); }
+}
+
+async function removePool(id) {
+  setSyncState('syncing');
+  try { await deleteDoc(doc(poolsCol(), id)); setSyncState('ok'); }
+  catch(e) { setSyncState('error'); showToast('Delete failed', true); }
+}
+
+function setSyncState(state) {
+  const dot = document.getElementById('syncDot');
+  dot.className = 'sync-dot' + (state === 'syncing' ? ' syncing' : state === 'error' ? ' error' : '');
+}
+
+// ── POOL GRID ──
+window.renderPoolGrid = function() {
+  const grid = document.getElementById('poolGrid');
+  grid.innerHTML = '';
+  Object.values(pools).forEach(pool => {
+    const last = pool.history && pool.history.length ? pool.history[pool.history.length-1] : null;
+    const card = document.createElement('div');
+    card.className = 'pool-card';
+    card.onclick = () => openPool(pool.id);
+    card.innerHTML = `
+      <div class="pool-card-name">${pool.name}</div>
+      <div class="pool-card-sub">${Number(pool.gallons).toLocaleString()} gal · ${pool.type} · ${pool.surface}</div>
+      <div class="pool-card-stats">
+        ${last ? `
+          <div class="stat-mini"><div class="val">${last.readings.freeChlorine??'—'}</div><div class="lbl">Cl ppm</div></div>
+          <div class="stat-mini"><div class="val">${last.readings.ph??'—'}</div><div class="lbl">pH</div></div>
+          <div class="stat-mini"><div class="val">${last.readings.alkalinity??'—'}</div><div class="lbl">TA</div></div>
+        ` : '<div style="font-size:11px;color:var(--text-dim)">No readings yet</div>'}
+      </div>
+      <div class="flow-badge ${pool.flow==='good'?'flow-good':'flow-low'}">${pool.flow==='good'?'✓ Good Flow':'⚠ Low Flow'}</div>`;
+    grid.appendChild(card);
+  });
+  const add = document.createElement('div');
+  add.className = 'add-pool-card';
+  add.onclick = openAddPool;
+  add.innerHTML = '<div class="plus">+</div><span>Add Pool</span>';
+  grid.appendChild(add);
+};
+
+// ── FEATURE BUTTONS ──
+function renderFeatureButtons() {
+  const c = document.getElementById('featureButtons');
+  c.innerHTML = '';
+  FEATURE_OPTIONS.forEach(f => {
+    const b = document.createElement('button');
+    b.className = 'btn btn-sm' + (selectedFeatures.has(f) ? ' btn-green' : '');
+    b.textContent = f;
+    b.onclick = () => { selectedFeatures.has(f) ? selectedFeatures.delete(f) : selectedFeatures.add(f); renderFeatureButtons(); };
+    c.appendChild(b);
+  });
+}
+
+// ── POOL MODAL ──
+window.openAddPool = function() {
+  editingPoolId = null; selectedFeatures = new Set();
+  document.getElementById('modalTitle').textContent = 'New Pool Profile';
+  ['poolName','poolGallons','poolNotes'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('poolType').value = 'residential';
+  document.getElementById('poolFlow').value = 'good';
+  document.getElementById('poolSurface').value = 'plaster';
+  renderFeatureButtons();
+  document.getElementById('poolModal').classList.add('open');
+};
+
+window.editCurrentPool = function() {
+  const pool = pools[currentPoolId]; if (!pool) return;
+  editingPoolId = pool.id; selectedFeatures = new Set(pool.features||[]);
+  document.getElementById('modalTitle').textContent = 'Edit Pool';
+  document.getElementById('poolName').value = pool.name;
+  document.getElementById('poolGallons').value = pool.gallons;
+  document.getElementById('poolType').value = pool.type;
+  document.getElementById('poolFlow').value = pool.flow||'good';
+  document.getElementById('poolSurface').value = pool.surface;
+  document.getElementById('poolNotes').value = pool.notes||'';
+  renderFeatureButtons();
+  document.getElementById('poolModal').classList.add('open');
+};
+
+window.savePool = async function() {
+  const name = document.getElementById('poolName').value.trim();
+  const gallons = document.getElementById('poolGallons').value;
+  if (!name || !gallons) { showToast('Name and gallons required', true); return; }
+  let pool;
+  if (editingPoolId) {
+    pool = { ...pools[editingPoolId], name, gallons: parseFloat(gallons),
+      type: document.getElementById('poolType').value,
+      flow: document.getElementById('poolFlow').value,
+      surface: document.getElementById('poolSurface').value,
+      notes: document.getElementById('poolNotes').value,
+      features: [...selectedFeatures] };
+  } else {
+    const id = Date.now().toString(36) + Math.random().toString(36).slice(2,5);
+    pool = { id, name, gallons: parseFloat(gallons),
+      type: document.getElementById('poolType').value,
+      flow: document.getElementById('poolFlow').value,
+      surface: document.getElementById('poolSurface').value,
+      notes: document.getElementById('poolNotes').value,
+      features: [...selectedFeatures],
+      targets: {}, customChems: [], history: [] };
+    DEFAULT_CHEMICALS.forEach(c => { pool.targets[c.key] = { min: c.min, max: c.max }; });
+  }
+  await persistPool(pool);
+  closeModal('poolModal');
+  showToast(editingPoolId ? 'Pool updated!' : 'Pool added!');
+};
+
+window.deleteCurrentPool = async function() {
+  if (!confirm('Delete this pool and all its history?')) return;
+  await removePool(currentPoolId);
+  showMain();
+};
+
+// ── VIEWS ──
+window.showMain = function() {
+  document.getElementById('mainView').style.display = '';
+  document.getElementById('detailView').style.display = 'none';
+  currentPoolId = null;
+  renderPoolGrid();
+};
+
+window.openPool = function(id) {
+  currentPoolId = id;
+  renderDetailView(id);
+};
+
+function renderDetailView(id) {
+  const pool = pools[id]; if (!pool) return;
+  document.getElementById('mainView').style.display = 'none';
+  document.getElementById('detailView').style.display = '';
+  document.getElementById('detailName').textContent = pool.name;
+  document.getElementById('detailSub').textContent = `${Number(pool.gallons).toLocaleString()} gal · ${pool.type} · ${pool.surface}`;
+  const badges = document.getElementById('detailBadges');
+  badges.innerHTML = `<div class="flow-badge ${pool.flow==='good'?'flow-good':'flow-low'}">${pool.flow==='good'?'✓ Good Flow':'⚠ Low Flow — larger chemical swings expected'}</div>`;
+  (pool.features||[]).forEach(f => { const b = document.createElement('div'); b.className='badge badge-blue'; b.textContent=f; badges.appendChild(b); });
+  pendingReadings = {}; pendingAnalysis = null;
+  switchTab('readings');
+}
+
+window.switchTab = function(tab) {
+  ['readings','history','settings'].forEach((t,i) => {
+    document.getElementById('tab-'+t).style.display = t===tab?'':'none';
+    document.querySelectorAll('.tab')[i].classList.toggle('active', t===tab);
+  });
+  if (tab==='readings') renderReadingsForm();
+  if (tab==='history') renderHistory();
+  if (tab==='settings') renderTargets();
+};
+
+// ── READINGS ──
+function getAllChems(pool) {
+  return [
+    ...DEFAULT_CHEMICALS.map(c => ({ ...c, min:(pool.targets[c.key]||{}).min??c.min, max:(pool.targets[c.key]||{}).max??c.max })),
+    ...(pool.customChems||[]).map(cc => ({ ...cc }))
+  ];
+}
+
+function renderReadingsForm() {
+  const pool = pools[currentPoolId]; if (!pool) return;
+  const grid = document.getElementById('readingsGrid');
+  grid.innerHTML = '';
+  document.getElementById('resultsPanel').style.display = 'none';
+  getAllChems(pool).forEach(c => {
+    const g = document.createElement('div'); g.className = 'reading-input-group';
+    const isChlorine = c.key==='freeChlorine';
+    const unitLabel = c.unit ? ` (${c.unit})` : '';
+    const clNote = isChlorine ? '<br><span style="font-size:9px;color:var(--cyan)">dosing shown in gallons</span>' : '';
+    g.innerHTML = `<label>${c.name}${unitLabel}${clNote}</label><input type="number" step="0.01" inputmode="decimal" placeholder="Reading" data-key="${c.key||c.name}">`;
+    grid.appendChild(g);
+  });
+}
+
+window.clearReadings = function() {
+  document.querySelectorAll('#readingsGrid input').forEach(i => i.value='');
+  document.getElementById('resultsPanel').style.display = 'none';
+};
+
+window.analyzeReadings = function() {
+  const pool = pools[currentPoolId]; if (!pool) return;
+  const chems = getAllChems(pool);
+  const readings = {};
+  document.querySelectorAll('#readingsGrid input').forEach(inp => {
+    const v = parseFloat(inp.value);
+    if (!isNaN(v)) readings[inp.dataset.key] = v;
+  });
+  if (!Object.keys(readings).length) { showToast('Enter at least one reading', true); return; }
+  pendingReadings = readings;
+
+  const isLowFlow = pool.flow === 'low';
+  document.getElementById('lowFlowWarning').style.display = isLowFlow ? '' : 'none';
+
+  const grid = document.getElementById('resultsGrid'); grid.innerHTML = '';
+  document.getElementById('resultsPanel').style.display = '';
+
+  chems.forEach(c => {
+    const key = c.key||c.name;
+    if (!(key in readings)) return;
+    const val = readings[key], min = c.min, max = c.max;
+    let status, cls, action;
+    if (val >= min && val <= max) {
+      status = '✓ In Range'; cls = 'result-ok'; action = 'No action needed';
+    } else if (val < min) {
+      status = '↑ Too Low'; cls = 'result-bad';
+      const diff = isLowFlow ? (min-val)*1.15 : (min-val);
+      action = (TREATMENT[key] ? TREATMENT[key](diff, pool.gallons) : null) || `Raise by ~${(min-val).toFixed(1)} ${c.unit}`;
+      if (isLowFlow) action += ' (+15% low flow)';
+    } else {
+      status = '↓ Too High'; cls = 'result-warn';
+      if (key==='ph') action = TREATMENT.ph(-(val-max), pool.gallons);
+      else action = 'Dilute or allow to decrease naturally';
+    }
+    const card = document.createElement('div'); card.className = `result-card ${cls}`;
+    const unitStr = c.unit ? ` ${c.unit}` : '';
+    card.innerHTML = `<div class="result-name">${c.name}</div><div class="result-reading">${val}${unitStr}</div><div class="result-status">${status} (${min}–${max})</div><div class="result-action"><strong>${action}</strong></div>`;
+    grid.appendChild(card);
+  });
+
+  pendingAnalysis = { readings, timestamp: new Date().toISOString() };
+};
+
+window.saveReading = async function() {
+  if (!pendingAnalysis) return;
+  const pool = { ...pools[currentPoolId] };
+  if (!pool.history) pool.history = [];
+  pool.history.push(pendingAnalysis);
+  await persistPool(pool);
+  showToast('Reading saved & synced!');
+};
+
+// ── HISTORY ──
+function renderHistory() {
+  const pool = pools[currentPoolId]; if (!pool) return;
+  const list = document.getElementById('historyList'); list.innerHTML = '';
+  if (!pool.history || !pool.history.length) {
+    list.innerHTML = '<div class="empty-state"><div class="icon">📋</div><p>No readings saved yet.</p></div>'; return;
+  }
+  [...pool.history].reverse().forEach(entry => {
+    const el = document.createElement('div'); el.className = 'history-entry';
+    const d = new Date(entry.timestamp);
+    const pills = Object.entries(entry.readings).map(([k,v]) => `<span class="history-pill">${k}: ${v}</span>`).join('');
+    el.innerHTML = `<div class="history-date">${d.toLocaleString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric',hour:'2-digit',minute:'2-digit'})}</div><div class="history-pills">${pills}</div>`;
+    list.appendChild(el);
+  });
+}
+
+// ── TARGETS ──
+function renderTargets() {
+  const pool = pools[currentPoolId]; if (!pool) return;
+  const grid = document.getElementById('targetsGrid'); grid.innerHTML = '';
+  const chemGrid = document.createElement('div'); chemGrid.className = 'chem-grid';
+  DEFAULT_CHEMICALS.forEach(c => {
+    const t = pool.targets[c.key] || { min: c.min, max: c.max };
+    const row = document.createElement('div'); row.className = 'chem-row';
+    row.innerHTML = `<label>${c.name}${c.unit?` (${c.unit})`:''}</label><div class="chem-inputs"><input type="number" step="0.1" value="${t.min}" data-key="${c.key}" data-type="min"><span class="chem-unit">to</span><input type="number" step="0.1" value="${t.max}" data-key="${c.key}" data-type="max"></div>`;
+    chemGrid.appendChild(row);
+  });
+  grid.appendChild(chemGrid);
+
+  const cl = document.getElementById('customChemList'); cl.innerHTML = '';
+  (pool.customChems||[]).forEach((cc,i) => {
+    const row = document.createElement('div'); row.style.cssText='display:flex;align-items:center;gap:10px;margin-bottom:10px;';
+    row.innerHTML = `<span style="flex:1;font-size:13px;"><strong>${cc.name}</strong> <span style="color:var(--text-dim)">${cc.unit} · ${cc.min}–${cc.max}</span></span><button class="btn btn-danger btn-sm" onclick="removeCustomChem(${i})">Remove</button>`;
+    cl.appendChild(row);
+  });
+}
+
+window.addCustomChem = async function() {
+  const name = document.getElementById('newChemName').value.trim();
+  const unit = document.getElementById('newChemUnit').value.trim();
+  const min = parseFloat(document.getElementById('newChemMin').value)||0;
+  const max = parseFloat(document.getElementById('newChemMax').value)||100;
+  if (!name) { showToast('Enter a chemical name', true); return; }
+  const pool = { ...pools[currentPoolId] };
+  if (!pool.customChems) pool.customChems = [];
+  pool.customChems.push({ name, unit, min, max });
+  await persistPool(pool);
+  ['newChemName','newChemUnit','newChemMin','newChemMax'].forEach(id => document.getElementById(id).value='');
+  showToast('Chemical added!');
+};
+
+window.removeCustomChem = async function(i) {
+  const pool = { ...pools[currentPoolId] };
+  pool.customChems.splice(i,1);
+  await persistPool(pool);
+  renderTargets();
+};
+
+window.saveTargets = async function() {
+  const pool = { ...pools[currentPoolId] };
+  document.querySelectorAll('#targetsGrid input[data-key]').forEach(inp => {
+    const key = inp.dataset.key, type = inp.dataset.type, val = parseFloat(inp.value);
+    if (!isNaN(val)) { if (!pool.targets[key]) pool.targets[key]={}; pool.targets[key][type]=val; }
+  });
+  await persistPool(pool);
+  showToast('Targets saved & synced!');
+};
+
+// ── UTILS ──
+window.closeModal = (id) => document.getElementById(id).classList.remove('open');
+
+function showToast(msg, isErr=false) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'show' + (isErr ? ' error' : '');
+  clearTimeout(window._toastTimer);
+  window._toastTimer = setTimeout(() => t.className = '', 3000);
+}
+
+// close modals on overlay tap
+document.querySelectorAll('.overlay').forEach(ov => {
+  ov.addEventListener('click', e => { if (e.target === ov) closeModal(ov.id); });
+});
+
+// enter key submits auth
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && document.getElementById('authScreen').style.display !== 'none') doAuth();
+});
+
+</script>
+</body>
+</html>
